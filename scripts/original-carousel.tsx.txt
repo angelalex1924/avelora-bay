@@ -1,0 +1,204 @@
+'use client';
+
+import { Fragment, useLayoutEffect } from 'react';
+import Image from 'next/image';
+import Link from 'next/link';
+import { ArrowUpRight, ChevronLeft, ChevronRight } from 'lucide-react';
+import { useLocalizedPath } from '@/app/lib/i18n/use-localized-path';
+
+declare global {
+  interface Window {
+    __aveloraHeroCarouselBoot?: () => void;
+  }
+}
+
+export type HeroPromo = {
+  id: string;
+  badge: string;
+  category: string;
+  productName: string;
+  price: string;
+  detail: string;
+  cta: string;
+  href: string;
+  image: string;
+  accent: 'ocean' | 'sand' | 'coral';
+};
+
+type HeroPromoCarouselProps = {
+  promos: HeroPromo[];
+  brandName: string;
+  floatEyebrow: string;
+};
+
+const NAV_NAME = 'avelora-hero-promo';
+
+function padSlide(index: number) {
+  return String(index + 1).padStart(2, '0');
+}
+
+export function HeroPromoCarousel({ promos, brandName, floatEyebrow }: HeroPromoCarouselProps) {
+  const { lp } = useLocalizedPath();
+  const total = promos.length;
+
+  useLayoutEffect(() => {
+    window.__aveloraHeroCarouselBoot?.();
+  }, [promos.length, brandName]);
+
+  return (
+    <div className="hero-promo-carousel" data-active="0" data-total={total}>
+      <button
+        type="button"
+        className="hero-promo-carousel__nav hero-promo-carousel__nav--prev"
+        aria-label="Previous slide"
+      >
+        <ChevronLeft size={20} strokeWidth={1.75} aria-hidden />
+      </button>
+      <button
+        type="button"
+        className="hero-promo-carousel__nav hero-promo-carousel__nav--next"
+        aria-label="Next slide"
+      >
+        <ChevronRight size={20} strokeWidth={1.75} aria-hidden />
+      </button>
+
+      <div className="hero-promo-carousel__viewport">
+        <div
+          className="hero-promo-carousel__track"
+          role="region"
+          aria-roledescription="carousel"
+          aria-label={brandName}
+        >
+          {promos.map((promo, index) => (
+            <article
+              key={promo.id}
+              data-slide-index={index}
+              className="hero-promo-carousel__slide"
+            >
+              <div className={`hero-promo-card hero-promo-card--${promo.accent}`}>
+                <div className="hero-promo-card__bg" aria-hidden />
+                <div className="hero-promo-card__grain" aria-hidden />
+                <div className="hero-promo-card__orb hero-promo-card__orb--1" aria-hidden />
+                <div className="hero-promo-card__orb hero-promo-card__orb--2" aria-hidden />
+
+                <div className="hero-promo-card__inner">
+                  <header className="hero-mobile-brand hero-promo-card__brand">
+                    <Image
+                      src="/avelora-bay.PNG"
+                      alt=""
+                      width={40}
+                      height={40}
+                      priority={index === 0}
+                      aria-hidden
+                      className="hero-mobile-brand__icon"
+                    />
+                    <Image
+                      src="/avelora-bay-text.PNG"
+                      alt={brandName}
+                      width={152}
+                      height={28}
+                      priority={index === 0}
+                      className="hero-mobile-brand__wordmark"
+                    />
+                  </header>
+
+                  <div className="hero-promo-card__layout">
+                    <div className="hero-promo-card__stage">
+                      <div className="hero-promo-card__ring" aria-hidden />
+                      <div className="hero-promo-card__ring hero-promo-card__ring--inner" aria-hidden />
+                      <div className="hero-promo-card__frame">
+                        <Image
+                          src={promo.image}
+                          alt={promo.productName}
+                          fill
+                          priority={index === 0}
+                          sizes="(max-width: 900px) 72vw, (max-width: 1200px) 38vw, 420px"
+                          className="hero-promo-card__photo"
+                        />
+                      </div>
+
+                      <div className="hero-promo-card__float">
+                        <span className="hero-promo-card__float-eyebrow">{floatEyebrow}</span>
+                        <span className="hero-promo-card__float-title">{promo.productName}</span>
+                        <span className="hero-promo-card__float-price">{promo.price}</span>
+                      </div>
+
+                      <div className="hero-promo-card__seal" aria-hidden>
+                        <span className="hero-promo-card__seal-main">{promo.badge}</span>
+                      </div>
+                    </div>
+
+                    <div className="hero-promo-card__copy">
+                      <span className="hero-promo-card__index" aria-hidden>
+                        {padSlide(index)}
+                      </span>
+
+                      <p className="hero-promo-card__category">
+                        <span className="hero-promo-card__category-line" aria-hidden />
+                        {promo.category}
+                      </p>
+
+                      <h2 className="hero-promo-card__name">{promo.productName}</h2>
+                      <p className="hero-promo-card__detail">{promo.detail}</p>
+
+                      <div className="hero-promo-card__meta">
+                        <span className="hero-promo-card__price">{promo.price}</span>
+                        <span className="hero-promo-card__rating" aria-label="4.9 stars">
+                          <span className="hero-promo-card__stars" aria-hidden>
+                            ★★★★★
+                          </span>
+                          <span className="hero-promo-card__rating-num">4.9</span>
+                        </span>
+                      </div>
+
+                      <Link href={lp(promo.href)} className="hero-promo-card__cta">
+                        <span>{promo.cta}</span>
+                        <ArrowUpRight size={15} strokeWidth={2} aria-hidden />
+                      </Link>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </article>
+          ))}
+        </div>
+      </div>
+
+      <div className="hero-promo-carousel__footer">
+        <div className="hero-promo-carousel__counter" aria-live="polite">
+          <span className="hero-promo-carousel__counter-current" data-hero-counter-current>
+            01
+          </span>
+          <span className="hero-promo-carousel__counter-sep" aria-hidden>
+            /
+          </span>
+          <span className="hero-promo-carousel__counter-total">{String(total).padStart(2, '0')}</span>
+        </div>
+
+        <div className="hero-promo-carousel__dots" role="tablist" aria-label="Promotions">
+          {promos.map((promo, index) => (
+            <Fragment key={promo.id}>
+              <input
+                type="radio"
+                name={NAV_NAME}
+                id={`${NAV_NAME}-${index}`}
+                className="hero-promo-nav-radio"
+                defaultChecked={index === 0}
+              />
+              <label
+                htmlFor={`${NAV_NAME}-${index}`}
+                role="tab"
+                aria-label={`${index + 1} / ${promos.length}`}
+                className="hero-promo-carousel__dot"
+              >
+                <span className="hero-promo-carousel__dot-track" aria-hidden>
+                  <span className="hero-promo-carousel__dot-progress" />
+                </span>
+              </label>
+            </Fragment>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}

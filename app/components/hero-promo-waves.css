@@ -1,0 +1,14 @@
+@keyframes hero-promo-wave-drift {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+.hero-promo-wave-band {
+  width: 600px;
+  max-width: none;
+  animation: hero-promo-wave-drift 12s linear infinite;
+}
