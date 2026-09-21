@@ -5,22 +5,40 @@ import { groupShopByCategory } from '@/app/lib/products/resolve-catalog';
 import type { ShopCategorySection, ShopProduct } from '@/app/lib/products/types';
 import { isShopifyAuthError, fetchShopifyProductsRaw } from './client';
 import { isShopifyConfigured } from './config';
+import { shopifyProductToShopProduct } from './adapter';
 import { SHOP_CATEGORY_ORDER } from '@/app/lib/products/catalog';
 
 export type ShopifyConnectionStatus = 'off' | 'connected' | 'auth_failed';
 
 function buildSections(products: ShopProduct[], locale: Locale): ShopCategorySection[] {
   const t = getTranslations(locale);
+  const sections: ShopCategorySection[] = [];
+  const handledIds = new Set<number>();
 
-  return SHOP_CATEGORY_ORDER.map((key) => {
+  for (const key of SHOP_CATEGORY_ORDER) {
     const categoryProducts = products.filter((p) => p.categoryKey === key);
-    return {
-      key,
-      label: t.shopCategories[key]?.label ?? key,
-      countLabel: t.shop.piecesCount.replace('{count}', String(categoryProducts.length)),
-      products: categoryProducts,
-    };
-  }).filter((section) => section.products.length > 0);
+    if (categoryProducts.length > 0) {
+      categoryProducts.forEach((p) => handledIds.add(p.id));
+      sections.push({
+        key,
+        label: t.shopCategories[key]?.label ?? key,
+        countLabel: t.shop.piecesCount.replace('{count}', String(categoryProducts.length)),
+        products: categoryProducts,
+      });
+    }
+  }
+
+  const remaining = products.filter((p) => !handledIds.has(p.id));
+  if (remaining.length > 0) {
+    sections.push({
+      key: 'gifts',
+      label: 'Shopify Collection',
+      countLabel: t.shop.piecesCount.replace('{count}', String(remaining.length)),
+      products: remaining,
+    });
+  }
+
+  return sections;
 }
 
 async function loadStaticSections(locale: Locale): Promise<ShopCategorySection[]> {
@@ -58,7 +76,10 @@ export async function getShopPageData(locale: Locale): Promise<{
   try {
     const response = await fetchShopifyProductsRaw(100);
     const nodes = response.data?.products.edges.map((e) => e.node) ?? [];
-    const products = mergeStaticCatalogWithShopify(t, nodes);
+    const products =
+      nodes.length > 0
+        ? nodes.map(shopifyProductToShopProduct)
+        : mergeStaticCatalogWithShopify(t, nodes);
     const sections = buildSections(products, locale);
     return { sections, shopifyStatus: 'connected', products };
   } catch (error) {
@@ -86,3 +107,21 @@ export function isUsingShopify(): boolean {
 export async function isShopifyLive(): Promise<boolean> {
   return (await getShopifyConnectionStatus()) === 'connected';
 }
+
+export async function getShopProductByHandle(
+  handle: string,
+  locale: Locale,
+): Promise<ShopProduct | null> {
+  const { products } = await getShopPageData(locale);
+  const normalized = decodeURIComponent(handle).toLowerCase().trim();
+
+  return (
+    products.find(
+      (p) =>
+        p.handle?.toLowerCase() === normalized ||
+        `product-${p.id}` === normalized ||
+        String(p.id) === normalized,
+    ) ?? null
+  );
+}
+

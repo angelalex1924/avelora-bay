@@ -79,7 +79,7 @@ export default function ShopContent({ sections, shopifyStatus }: ShopContentProp
                     className={`shop-page__hero-tile shop-page__hero-tile--${index + 1}`}
                   >
                     <Image
-                      src={CATEGORY_SECTION_IMAGES[key]}
+                      src={CATEGORY_SECTION_IMAGES[key] ?? '/hero-back.jpg'}
                       alt=""
                       fill
                       sizes="(max-width: 900px) 40vw, 220px"
@@ -158,7 +158,7 @@ export default function ShopContent({ sections, shopifyStatus }: ShopContentProp
                 </div>
                 <div className="shop-page__category-visual" aria-hidden>
                   <Image
-                    src={CATEGORY_SECTION_IMAGES[section.key]}
+                    src={CATEGORY_SECTION_IMAGES[section.key] ?? '/hero-back.jpg'}
                     alt=""
                     fill
                     sizes="200px"
